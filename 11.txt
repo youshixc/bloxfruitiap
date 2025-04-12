@@ -1,0 +1,281 @@
+--[[
+  Cry More xj3t_
+  you cant even make optimization
+]]
+
+-- local HWIDTable = loadstring(game:HttpGet("https://raw.githubusercontent.com/CrismonPetrasion/HWID/main/Checker.lua"))()
+local HWID = game:GetService("RbxAnalyticsService"):GetClientId()
+
+--// Services
+
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+--// Variables
+
+local Camera = workspace.CurrentCamera
+local Weapons = ReplicatedStorage.Weapons
+local Debris = workspace.Debris
+local RayIgnore = workspace.Ray_Ignore
+local LocalPlayer = Players.LocalPlayer
+
+local CurrentCamera = Camera
+local WorldToViewportPoint = CurrentCamera.WorldToViewportPoint
+
+--// Aimbot Settings
+
+local FOVring = Drawing.new("Circle")
+FOVring.Visible = false
+FOVring.Thickness = 1.5
+FOVring.Radius = 150
+FOVring.Transparency = 1
+FOVring.Color = Color3.fromRGB(200, 200, 200)
+
+local AimSettings = {
+    Enabled = false,
+    TeamCheck = false,
+    Smoothing = 1,
+    EnableFOV = false
+}
+
+local ESPSettings = {
+    Enabled = false,
+    UseTeamColor = false,
+    ChamsColor = Color3.fromRGB(200,200,200)
+}
+
+local Sounds = {
+    KillSoundEnabled = false,
+    HitSoundEnabled = false,
+    KillSound = nil,
+    HitSound = nil,
+}
+
+--// Library
+
+local Library = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+--// Window
+
+local Window = Library:CreateWindow({
+    Name = "Galaxy.Skid :3",
+    LoadingTitle = "Loading Script",
+    LoadingSubtitle = "By Fizz",
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = "CounterBlox", -- Create a custom folder for your hub/game
+        FileName = "FizzCounterBlox"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+        RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+        Title = "Key System",
+        Subtitle = "Discord System",
+        Note = "discord.gg/vZQTkyCXD8",
+        FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+        SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+        GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+        Key = {"GalaxyHubIsBestSkiddersEver"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+    }
+})
+
+local Home = Window:CreateTab("Home", 4483362458) -- Title, Image
+local Combat = Window:CreateTab("Combat", 4483362458) -- Title, Image
+local Misc = Window:CreateTab("Misc", 4483362458) -- Title, Image
+local Visuals = Window:CreateTab("Visuals", 4483362458) -- Title, Image
+local World = Window:CreateTab("World", 4483362458) -- Title, Image
+
+--// Version
+
+local Version = "1.0"
+
+--// Game
+
+if true then
+    function GetClosestPlayer(CFrame)
+        local Ray = Ray.new(CFrame.Position, CFrame.LookVector).Unit
+    
+        local Target = nil
+        local Mag = math.huge
+    
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Character and v.Character:FindFirstChild("Humanoid").Health > 0 and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("HumanoidRootPart") and v ~= LocalPlayer and (v.Team ~= LocalPlayer.Team or (not AimSettings.TeamCheck)) then
+                local Position = v.Character.Head.Position
+                local MagBuff = (Position - Ray:ClosestPoint(Position)).Magnitude
+                if MagBuff < Mag then
+                    Mag = MagBuff
+                    Target = v
+                end
+            end
+        end
+    
+        return Target
+    end
+
+    do
+        --// Home
+
+        Home:CreateLabel("Premium Version")
+        Home:CreateLabel("Version: ".. Version)
+    end
+
+    do
+        --// Combat
+
+        Combat:CreateSection("Aimbot")
+        Combat:CreateToggle({
+            Name = "Aimbot",
+            CurrentValue = false,
+            Flag = "Aimbot",
+            Callback = function(Value)
+                AimSettings.Enabled = true
+            end,
+        })
+
+        Combat:CreateSection("Settings")
+        Combat:CreateSlider({
+            Name = "FOV Radius",
+            Range = {0, 2000},
+            Increment = 1,
+            CurrentValue = 150,
+            Flag = "FOVRadius", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+            Callback = function(Value)
+                FOVring.Radius = Value
+            end,
+        })
+
+        Combat:CreateColorPicker({
+            Name = "FOV Color",
+            Color = Color3.fromRGB(200,200,200),
+            Flag = "FOVColor", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+            Callback = function(Value)
+                FOVring.Color = Value or Color3.fromRGB(200,200,200)
+            end
+        })
+
+        Combat:CreateToggle({
+            Name = "Use FOV",
+            CurrentValue = false,
+            Flag = "UseFOV",
+            Callback = function(Value)
+                AimSettings.EnableFOV = Value
+            end,
+        })
+
+        Combat:CreateToggle({
+            Name = "Team Check",
+            CurrentValue = false,
+            Flag = "TeamCheck",
+            Callback = function(Value)
+                AimSettings.TeamCheck = Value
+            end,
+        })
+
+        Combat:CreateSection("Character")
+        Combat:CreateToggle({
+            Name = "Spinbot",
+            CurrentValue = false,
+            Flag = "Spinbot",
+            Callback = function(Value)
+                _G.SpinBot = Value
+            end,
+        })
+
+        Combat:CreateSection("Settings")
+        Combat:CreateSlider({
+            Name = "Speed",
+            Range = {0, 500},
+            Increment = 1,
+            CurrentValue = 150,
+            Flag = "FOVRadius", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+            Callback = function(Value)
+                _G.Speed = Value
+            end,
+        })
+    end
+
+    do
+        --// Misc
+
+        Misc:CreateSection("Guns")
+        Misc:CreateButton({
+            Name = "No Fire Rate",
+            Callback = function()
+                for _, Weapon in ipairs(Weapons:GetChildren()) do
+                    if Weapon:FindFirstChild("FireRate") then
+                        Weapon:FindFirstChild("FireRate").Value = 0
+                    end 
+                end
+            end,
+        })
+    
+        Misc:CreateButton({
+            Name = "No Spread",
+            Callback = function()
+                for _, Weapon in ipairs(Weapons:GetChildren()) do
+                    if Weapon:FindFirstChild("Spread") then
+                        Weapon:FindFirstChild("Spread").Value = 0
+                        for _, Spread in ipairs(Weapon:FindFirstChild("Spread"):GetChildren()) do
+                            Spread.Value = 0
+                        end
+                    end 
+                end
+            end,
+        })
+
+        Misc:CreateButton({
+            Name = "Instant Reload Time",
+            Callback = function()
+                for _, Weapon in ipairs(Weapons:GetChildren()) do
+                    if Weapon:FindFirstChild("ReloadTime") then
+                        Weapon:FindFirstChild("ReloadTime").Value = 0.05
+                    end 
+                end
+            end,
+        })
+
+        Misc:CreateButton({
+            Name = "Instant Equip Time",
+            Callback = function()
+                for _, Weapon in ipairs(Weapons:GetChildren()) do
+                    if Weapon:FindFirstChild("EquipTime") then
+                        Weapon:FindFirstChild("EquipTime").Value = 0.05
+                    end 
+                end
+            end,
+        })
+    
+        Misc:CreateButton({
+            Name = "Infinite Ammo",
+            Callback = function()
+                for _, Weapon in ipairs(Weapons:GetChildren()) do
+                    if Weapon:FindFirstChild("Ammo") and Weapon:FindFirstChild("StoredAmmo") then
+                        Weapon:FindFirstChild("Ammo").Value = 9999999999
+                        Weapon:FindFirstChild("StoredAmmo").Value = 9999999999
+                    end 
+                end
+            end,
+        })
+
+        Misc:CreateSection("Sounds")
+        Misc:CreateToggle({
+            Name = "Hit Sound",
+            CurrentValue = false,
+            Flag = "HitSound", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+            Callback = function(Value)
+                Sounds.HitSoundEnabled = Value
+            end,
+        })
+
+        Misc:CreateToggle({
+            Name = "Kill Sound",
+            CurrentValue = false,
+            Flag = "KillSound", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+            Callbac
